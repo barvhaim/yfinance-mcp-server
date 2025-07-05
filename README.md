@@ -174,14 +174,16 @@ To connect this server with Claude Desktop:
 3. **Add the server configuration**:
    ```json
    {
-     "mcpServers": {
-       "yfinance": {
-         "command": "uv",
-         "args": ["run", "main.py"],
-         "cwd": "/path/to/yfinance-mcp-server"
-       }
-     }
-   }
+      "yfinance": {
+        "command": "uv",
+        "args": [
+          "--directory",
+          "/path/to/yfinance-mcp-server",
+          "run",
+          "main.py"
+        ]
+      }
+    }
    ```
 
 4. **Update the cwd path** to your actual project directory
