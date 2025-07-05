@@ -2,6 +2,8 @@
 
 A comprehensive Model Context Protocol (MCP) server that provides financial data through Yahoo Finance API integration. This server enables AI agents to access real-time stock market data, historical prices, financial statements, and market analysis.
 
+![image](https://github.com/user-attachments/assets/a3cabdbb-9eb9-4743-83d9-25c2904aa234)
+
 ## Features
 
 - **10 Comprehensive Financial Tools** for complete market data access
@@ -14,8 +16,6 @@ A comprehensive Model Context Protocol (MCP) server that provides financial data
 - **Stock Search and Multi-quote Support**
 - **Robust Error Handling** with structured JSON responses
 - **FastMCP Framework** with async support for high performance
-
-![image](https://github.com/user-attachments/assets/a3cabdbb-9eb9-4743-83d9-25c2904aa234)
 
 ## Quick Start
 
