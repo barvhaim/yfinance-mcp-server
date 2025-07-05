@@ -15,6 +15,8 @@ A comprehensive Model Context Protocol (MCP) server that provides financial data
 - **Robust Error Handling** with structured JSON responses
 - **FastMCP Framework** with async support for high performance
 
+![image](https://github.com/user-attachments/assets/a3cabdbb-9eb9-4743-83d9-25c2904aa234)
+
 ## Quick Start
 
 ### Prerequisites
