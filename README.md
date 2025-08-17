@@ -28,7 +28,7 @@ A comprehensive Model Context Protocol (MCP) server that provides financial data
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/barvhaim/yfinance-mcp-server.git
 cd yfinance-mcp-server
 
 # Install dependencies
