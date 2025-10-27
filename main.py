@@ -567,5 +567,4 @@ async def get_multiple_quotes(symbols: List[str]) -> Dict[str, Any]:
 
 if __name__ == "__main__":
     # Run the FastMCP server
-
-    mcp.run()
+    mcp.run(transport="sse", host="0.0.0.0", port=5555)
