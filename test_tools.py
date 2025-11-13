@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 from typing import Dict, Any, List
 import yfinance as yf
+import pandas as pd
 
 
 # Direct implementation of the functions to test the underlying logic
@@ -177,20 +178,62 @@ async def get_earnings(symbol: str) -> Dict[str, Any]:
     """Get earnings data for a stock."""
     try:
         ticker = yf.Ticker(symbol.upper())
-        earnings = ticker.earnings
-        quarterly_earnings = ticker.quarterly_earnings
+
+        # Get income statement data since earnings property is deprecated
+        annual_income = ticker.income_stmt
+        quarterly_income = ticker.quarterly_income_stmt
 
         result = {
             "symbol": symbol.upper(),
             "annual_earnings": {},
             "quarterly_earnings": {},
+            "note": "Earnings data extracted from income statements (Net Income)",
         }
 
-        if not earnings.empty:
-            result["annual_earnings"] = earnings.to_dict()
+        # Extract Net Income from annual income statement
+        if annual_income is not None and not annual_income.empty:
+            # Look for Net Income row
+            net_income_rows = annual_income[
+                annual_income.index.str.contains("Net Income", case=False, na=False)
+            ]
+            if not net_income_rows.empty:
+                # Convert to dictionary with dates as keys
+                net_income_data = net_income_rows.iloc[0].to_dict()
+                # Convert timestamps to strings for JSON serialization
+                annual_earnings = {}
+                for date, value in net_income_data.items():
+                    date_str = (
+                        date.strftime("%Y-%m-%d")
+                        if hasattr(date, "strftime")
+                        else str(date)
+                    )
+                    annual_earnings[date_str] = (
+                        float(value)
+                        if value is not None and not pd.isna(value)
+                        else None
+                    )
+                result["annual_earnings"] = annual_earnings
 
-        if not quarterly_earnings.empty:
-            result["quarterly_earnings"] = quarterly_earnings.to_dict()
+        # Extract Net Income from quarterly income statement
+        if quarterly_income is not None and not quarterly_income.empty:
+            net_income_rows = quarterly_income[
+                quarterly_income.index.str.contains("Net Income", case=False, na=False)
+            ]
+            if not net_income_rows.empty:
+                net_income_data = net_income_rows.iloc[0].to_dict()
+                quarterly_earnings = {}
+                for date, value in net_income_data.items():
+                    date_str = (
+                        date.strftime("%Y-%m-%d")
+                        if hasattr(date, "strftime")
+                        else str(date)
+                    )
+                    quarterly_earnings[date_str] = (
+                        float(value)
+                        if value is not None and not pd.isna(value)
+                        else None
+                    )
+                result["quarterly_earnings"] = quarterly_earnings
 
         return result
     except Exception as e:
@@ -249,15 +292,27 @@ async def get_recommendations(symbol: str) -> Dict[str, Any]:
                 "message": "No recommendations available",
             }
 
+        # Convert to dictionary format - new structure has recommendation counts by period
         rec_data = []
-        for date, row in recommendations.iterrows():
+        for _, row in recommendations.iterrows():
+            period = row.get("period", "")
+            total_recommendations = (
+                row.get("strongBuy", 0)
+                + row.get("buy", 0)
+                + row.get("hold", 0)
+                + row.get("sell", 0)
+                + row.get("strongSell", 0)
+            )
+
             rec_data.append(
                 {
-                    "date": date.strftime("%Y-%m-%d"),
-                    "firm": row.get("Firm", ""),
-                    "to_grade": row.get("To Grade", ""),
-                    "from_grade": row.get("From Grade", ""),
-                    "action": row.get("Action", ""),
+                    "period": period,
+                    "strong_buy": int(row.get("strongBuy", 0)),
+                    "buy": int(row.get("buy", 0)),
+                    "hold": int(row.get("hold", 0)),
+                    "sell": int(row.get("sell", 0)),
+                    "strong_sell": int(row.get("strongSell", 0)),
+                    "total": total_recommendations,
                 }
             )
 
@@ -265,6 +320,7 @@ async def get_recommendations(symbol: str) -> Dict[str, Any]:
             "symbol": symbol.upper(),
             "recommendations": rec_data,
             "count": len(rec_data),
+            "note": "Recommendations show analyst count by rating for different time periods",
         }
     except Exception as e:
         return {"error": f"Failed to get recommendations for {symbol}: {str(e)}"}
@@ -273,20 +329,25 @@ async def get_recommendations(symbol: str) -> Dict[str, Any]:
 async def search_stocks(query: str, limit: int = 10) -> Dict[str, Any]:
     """Search for stocks by name or symbol."""
     try:
-        search_results = yf.search(query, limit=limit)
+        # Use yfinance Search class (updated API)
+        search_obj = yf.Search(query, max_results=limit)
+        search_results = search_obj.quotes
 
         if not search_results:
             return {"query": query, "results": [], "message": "No results found"}
 
         results = []
-        for result in search_results:
+        for result in search_results[:limit]:  # Ensure we don't exceed limit
             results.append(
                 {
                     "symbol": result.get("symbol", ""),
-                    "name": result.get("longname", ""),
-                    "type": result.get("type", ""),
+                    "name": result.get("longname", result.get("shortname", "")),
+                    "type": result.get("quoteType", ""),
                     "exchange": result.get("exchange", ""),
-                    "market": result.get("market", ""),
+                    "sector": result.get("sector", ""),
+                    "industry": result.get("industry", ""),
+                    "score": result.get("score", 0),
+                    "is_yahoo_finance": result.get("isYahooFinance", False),
                 }
             )
 
@@ -720,11 +781,37 @@ class ToolTester:
         return summary
 
 
+def convert_to_serializable(obj):
+    """Convert objects to JSON serializable format"""
+    if isinstance(obj, (pd.Timestamp, datetime)):
+        return obj.isoformat()
+    elif isinstance(obj, dict):
+        # Convert both keys and values to serializable format
+        new_dict = {}
+        for k, v in obj.items():
+            # Convert Timestamp keys to string
+            if isinstance(k, (pd.Timestamp, datetime)):
+                new_key = k.isoformat()
+            else:
+                new_key = str(k) if not isinstance(k, (str, int, float, bool, type(None))) else k
+            new_dict[new_key] = convert_to_serializable(v)
+        return new_dict
+    elif isinstance(obj, list):
+        return [convert_to_serializable(item) for item in obj]
+    elif pd.isna(obj):
+        return None
+    else:
+        return obj
+
+
 def save_results(results: Dict[str, Any], filename: str = "test_results.json"):
     """Save test results to JSON file"""
     try:
+        # Convert all results to serializable format
+        serializable_results = convert_to_serializable(results)
+
         with open(filename, "w", encoding="utf-8") as f:
-            json.dump(results, f, indent=2, default=str)
+            json.dump(serializable_results, f, indent=2)
         logger.info("Test results saved to %s", filename)
     except Exception as e:
         logger.error("Failed to save results: %s", str(e))
