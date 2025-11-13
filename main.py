@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
+"""YFinance MCP Server - A Model Context Protocol server for Yahoo Finance data."""
 
-import asyncio
 import logging
-import os
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import yfinance as yf
@@ -85,7 +84,7 @@ async def get_stock_info(symbol: str) -> Dict[str, Any]:
             ),
         }
     except Exception as e:
-        logger.error(f"Error getting stock info for {symbol}: {str(e)}")
+        logger.error("Error getting stock info for %s: %s", symbol, str(e))
         return {"error": f"Failed to get stock info for {symbol}: {str(e)}"}
 
 
@@ -133,7 +132,7 @@ async def get_historical_data(
             "count": len(data),
         }
     except Exception as e:
-        logger.error(f"Error getting historical data for {symbol}: {str(e)}")
+        logger.error("Error getting historical data for %s: %s", symbol, str(e))
         return {"error": f"Failed to get historical data for {symbol}: {str(e)}"}
 
 
@@ -171,7 +170,7 @@ async def get_dividends(symbol: str) -> Dict[str, Any]:
             "count": len(dividend_data),
         }
     except Exception as e:
-        logger.error(f"Error getting dividends for {symbol}: {str(e)}")
+        logger.error("Error getting dividends for %s: %s", symbol, str(e))
         return {"error": f"Failed to get dividends for {symbol}: {str(e)}"}
 
 
@@ -209,7 +208,7 @@ async def get_splits(symbol: str) -> Dict[str, Any]:
             "count": len(split_data),
         }
     except Exception as e:
-        logger.error(f"Error getting splits for {symbol}: {str(e)}")
+        logger.error("Error getting splits for %s: %s", symbol, str(e))
         return {"error": f"Failed to get splits for {symbol}: {str(e)}"}
 
 
@@ -257,7 +256,7 @@ async def get_financials(symbol: str, quarterly: bool = False) -> Dict[str, Any]
 
         return result
     except Exception as e:
-        logger.error(f"Error getting financials for {symbol}: {str(e)}")
+        logger.error("Error getting financials for %s: %s", symbol, str(e))
         return {"error": f"Failed to get financials for {symbol}: {str(e)}"}
 
 
@@ -334,7 +333,7 @@ async def get_earnings(symbol: str) -> Dict[str, Any]:
 
         return result
     except Exception as e:
-        logger.error(f"Error getting earnings for {symbol}: {str(e)}")
+        logger.error("Error getting earnings for %s: %s", symbol, str(e))
         return {"error": f"Failed to get earnings for {symbol}: {str(e)}"}
 
 
@@ -375,14 +374,12 @@ async def get_news(symbol: str, count: int = 10) -> Dict[str, Any]:
             pub_time = 0
             if content.get("pubDate"):
                 try:
-                    from datetime import datetime
-
                     pub_time = int(
                         datetime.fromisoformat(
                             content["pubDate"].replace("Z", "+00:00")
                         ).timestamp()
                     )
-                except:
+                except (ValueError, KeyError, AttributeError):
                     pub_time = 0
 
             news_data.append(
@@ -399,7 +396,7 @@ async def get_news(symbol: str, count: int = 10) -> Dict[str, Any]:
 
         return {"symbol": symbol.upper(), "news": news_data, "count": len(news_data)}
     except Exception as e:
-        logger.error(f"Error getting news for {symbol}: {str(e)}")
+        logger.error("Error getting news for %s: %s", symbol, str(e))
         return {"error": f"Failed to get news for {symbol}: {str(e)}"}
 
 
@@ -427,7 +424,7 @@ async def get_recommendations(symbol: str) -> Dict[str, Any]:
 
         # Convert to dictionary format - new structure has recommendation counts by period
         rec_data = []
-        for index, row in recommendations.iterrows():
+        for _, row in recommendations.iterrows():
             period = row.get("period", "")
             total_recommendations = (
                 row.get("strongBuy", 0)
@@ -456,7 +453,7 @@ async def get_recommendations(symbol: str) -> Dict[str, Any]:
             "note": "Recommendations show analyst count by rating for different time periods",
         }
     except Exception as e:
-        logger.error(f"Error getting recommendations for {symbol}: {str(e)}")
+        logger.error("Error getting recommendations for %s: %s", symbol, str(e))
         return {"error": f"Failed to get recommendations for {symbol}: {str(e)}"}
 
 
@@ -510,7 +507,7 @@ async def search_stocks(query: str, limit: int = 10) -> Dict[str, Any]:
 
         return {"query": query, "results": results, "count": len(results)}
     except Exception as e:
-        logger.error(f"Error searching stocks for query '{query}': {str(e)}")
+        logger.error("Error searching stocks for query '%s': %s", query, str(e))
         return {"error": f"Failed to search stocks for query '{query}': {str(e)}"}
 
 
@@ -561,7 +558,7 @@ async def get_multiple_quotes(symbols: List[str]) -> Dict[str, Any]:
 
         return {"symbols": symbols, "quotes": results, "count": len(symbols)}
     except Exception as e:
-        logger.error(f"Error getting multiple quotes: {str(e)}")
+        logger.error("Error getting multiple quotes: %s", str(e))
         return {"error": f"Failed to get multiple quotes: {str(e)}"}
 
 
