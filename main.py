@@ -61,22 +61,76 @@ async def get_stock_info(symbol: str) -> Dict[str, Any]:
             "symbol": symbol.upper(),
             "name": info.get("longName", ""),
             "current_price": info.get("currentPrice", 0.0),
+            "previous_close": info.get("previousClose"),
+            "open": info.get("open"),
+            "day_high": info.get("dayHigh"),
+            "day_low": info.get("dayLow"),
             "market_cap": info.get("marketCap"),
-            "pe_ratio": info.get("forwardPE"),
+            # P/E Ratios
+            "trailing_pe": info.get("trailingPE"),  # P/E based on past 12 months
+            "forward_pe": info.get("forwardPE"),  # P/E based on estimated earnings
+            "peg_ratio": info.get("pegRatio"),  # PEG ratio (PE to growth)
+            # Valuation Metrics
+            "price_to_sales": info.get("priceToSalesTrailing12Months"),
+            "price_to_book": info.get("priceToBook"),
+            "enterprise_value": info.get("enterpriseValue"),
+            "enterprise_to_revenue": info.get("enterpriseToRevenue"),
+            "enterprise_to_ebitda": info.get("enterpriseToEbitda"),
+            # Profitability Metrics
+            "profit_margins": info.get("profitMargins"),
+            "operating_margins": info.get("operatingMargins"),
+            "gross_margins": info.get("grossMargins"),
+            "ebitda_margins": info.get("ebitdaMargins"),
+            # Earnings & Returns
+            "earnings_per_share": info.get("trailingEps"),
+            "forward_eps": info.get("forwardEps"),
+            "return_on_assets": info.get("returnOnAssets"),
+            "return_on_equity": info.get("returnOnEquity"),
+            # Dividend Information
             "dividend_yield": info.get("dividendYield"),
+            "dividend_rate": info.get("dividendRate"),
+            "payout_ratio": info.get("payoutRatio"),
+            "ex_dividend_date": info.get("exDividendDate"),
+            # Financial Health
+            "debt_to_equity": info.get("debtToEquity"),
+            "current_ratio": info.get("currentRatio"),
+            "quick_ratio": info.get("quickRatio"),
+            "total_cash": info.get("totalCash"),
+            "total_debt": info.get("totalDebt"),
+            "free_cashflow": info.get("freeCashflow"),
+            "operating_cashflow": info.get("operatingCashflow"),
+            # Growth Metrics
+            "revenue_growth": info.get("revenueGrowth"),
+            "earnings_growth": info.get("earningsGrowth"),
+            "revenue_per_share": info.get("revenuePerShare"),
+            "book_value": info.get("bookValue"),
+            # Trading Metrics
             "52_week_high": info.get("fiftyTwoWeekHigh"),
             "52_week_low": info.get("fiftyTwoWeekLow"),
+            "52_week_change": info.get("52WeekChange"),
             "volume": info.get("volume"),
             "avg_volume": info.get("averageVolume"),
+            "avg_volume_10days": info.get("averageVolume10days"),
             "beta": info.get("beta"),
-            "earnings_per_share": info.get("trailingEps"),
-            "price_to_book": info.get("priceToBook"),
-            "debt_to_equity": info.get("debtToEquity"),
-            "return_on_equity": info.get("returnOnEquity"),
+            "shares_outstanding": info.get("sharesOutstanding"),
+            "float_shares": info.get("floatShares"),
+            "shares_short": info.get("sharesShort"),
+            "short_ratio": info.get("shortRatio"),
+            "short_percent_of_float": info.get("shortPercentOfFloat"),
+            # Analyst Metrics
+            "target_high_price": info.get("targetHighPrice"),
+            "target_low_price": info.get("targetLowPrice"),
+            "target_mean_price": info.get("targetMeanPrice"),
+            "target_median_price": info.get("targetMedianPrice"),
+            "recommendation_mean": info.get("recommendationMean"),
+            "recommendation_key": info.get("recommendationKey"),
+            "number_of_analyst_opinions": info.get("numberOfAnalystOpinions"),
+            # Company Information
             "sector": info.get("sector"),
             "industry": info.get("industry"),
             "country": info.get("country"),
             "website": info.get("website"),
+            "full_time_employees": info.get("fullTimeEmployees"),
             "business_summary": (
                 info.get("businessSummary", "")[:500] + "..."
                 if info.get("businessSummary", "")
@@ -549,7 +603,21 @@ async def get_multiple_quotes(symbols: List[str]) -> Dict[str, Any]:
                     * 100,
                     "volume": info.get("volume", 0),
                     "market_cap": info.get("marketCap"),
-                    "pe_ratio": info.get("forwardPE"),
+                    # P/E Ratios
+                    "trailing_pe": info.get("trailingPE"),
+                    "forward_pe": info.get("forwardPE"),
+                    "peg_ratio": info.get("pegRatio"),
+                    # Key Valuation Metrics
+                    "price_to_sales": info.get("priceToSalesTrailing12Months"),
+                    "price_to_book": info.get("priceToBook"),
+                    "dividend_yield": info.get("dividendYield"),
+                    "beta": info.get("beta"),
+                    # Profitability
+                    "profit_margins": info.get("profitMargins"),
+                    "operating_margins": info.get("operatingMargins"),
+                    # Analyst Data
+                    "target_mean_price": info.get("targetMeanPrice"),
+                    "recommendation_key": info.get("recommendationKey"),
                 }
             except Exception as e:
                 results[symbol] = {

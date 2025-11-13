@@ -793,7 +793,11 @@ def convert_to_serializable(obj):
             if isinstance(k, (pd.Timestamp, datetime)):
                 new_key = k.isoformat()
             else:
-                new_key = str(k) if not isinstance(k, (str, int, float, bool, type(None))) else k
+                new_key = (
+                    str(k)
+                    if not isinstance(k, (str, int, float, bool, type(None)))
+                    else k
+                )
             new_dict[new_key] = convert_to_serializable(v)
         return new_dict
     elif isinstance(obj, list):
